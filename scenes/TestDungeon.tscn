@@ -1,0 +1,96 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/LaserBeam.gd" id="3_laser"]
+[ext_resource type="Script" path="res://scripts/ProjectilePool.gd" id="4_pool"]
+[ext_resource type="Script" path="res://scripts/Enemy.gd" id="5_enemy"]
+
+[sub_resource type="Environment" id="Environment_glow"]
+background_mode = 3
+glow_enabled = true
+glow_intensity = 0.8
+glow_bloom = 0.25
+glow_blend_mode = 0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hwall"]
+size = Vector2(1280, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vwall"]
+size = Vector2(32, 720)
+
+[node name="TestDungeon" type="Node2D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_glow")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Walls" type="Node2D" parent="."]
+
+[node name="TopWall" type="StaticBody2D" parent="Walls" groups=["ReflectiveWall"]]
+position = Vector2(640, 16)
+
+[node name="Polygon2D" type="Polygon2D" parent="Walls/TopWall"]
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-640, -16, 640, -16, 640, 16, -640, 16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/TopWall"]
+shape = SubResource("RectangleShape2D_hwall")
+
+[node name="BottomWall" type="StaticBody2D" parent="Walls" groups=["ReflectiveWall"]]
+position = Vector2(640, 704)
+
+[node name="Polygon2D" type="Polygon2D" parent="Walls/BottomWall"]
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-640, -16, 640, -16, 640, 16, -640, 16)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/BottomWall"]
+shape = SubResource("RectangleShape2D_hwall")
+
+[node name="LeftWall" type="StaticBody2D" parent="Walls" groups=["ReflectiveWall"]]
+position = Vector2(16, 360)
+
+[node name="Polygon2D" type="Polygon2D" parent="Walls/LeftWall"]
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-16, -360, 16, -360, 16, 360, -16, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/LeftWall"]
+shape = SubResource("RectangleShape2D_vwall")
+
+[node name="RightWall" type="StaticBody2D" parent="Walls" groups=["ReflectiveWall"]]
+position = Vector2(1264, 360)
+
+[node name="Polygon2D" type="Polygon2D" parent="Walls/RightWall"]
+color = Color(1, 1, 1, 1)
+polygon = PackedVector2Array(-16, -360, 16, -360, 16, 360, -16, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Walls/RightWall"]
+shape = SubResource("RectangleShape2D_vwall")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(640, 360)
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="TestLaser" type="Node2D" parent="."]
+position = Vector2(120, 140)
+rotation = 0.6
+script = ExtResource("3_laser")
+
+[node name="ProjectilePool" type="Node2D" parent="."]
+script = ExtResource("4_pool")
+
+[node name="SkeletonTurret" type="CharacterBody2D" parent="."]
+position = Vector2(300, 180)
+script = ExtResource("5_enemy")
+
+[node name="Overseer" type="CharacterBody2D" parent="."]
+position = Vector2(640, 100)
+script = ExtResource("5_enemy")
+enemy_type = 1
+max_health = 400.0
