@@ -82,16 +82,25 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_SPACE:
 		_try_dash()
+	elif event is InputEventKey and event.physical_keycode == KEY_E and not event.echo:
+		if event.pressed:
+			drag_vector = get_global_mouse_position() - global_position
+			_update_shield_target(drag_vector)
+			shield_pivot.rotation = _shield_target_angle
+			_raise_shield()
+		elif not Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+			_target_offset = min_offset
+			_lower_shield(true)
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		if event.pressed:
 			drag_vector = get_global_mouse_position() - global_position
 			_update_shield_target(drag_vector)
 			shield_pivot.rotation = _shield_target_angle
 			_raise_shield()
-		else:
+		elif not Input.is_physical_key_pressed(KEY_E):
 			_target_offset = min_offset
 			_lower_shield(true)
-	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
+	elif event is InputEventMouseMotion and (Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or Input.is_physical_key_pressed(KEY_E)):
 		drag_vector = get_global_mouse_position() - global_position
 		_update_shield_target(drag_vector)
 		shield_pivot.rotation = lerp_angle(shield_pivot.rotation, _shield_target_angle, aim_immediate_weight)

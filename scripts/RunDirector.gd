@@ -22,7 +22,7 @@ func _ready() -> void:
 	$HUD.add_child(_button)
 	_button.pressed.connect(_next_floor)
 	var help := Label.new()
-	help.text = "WASD: hareket  •  Sağ tık: Shilda  •  Boşluk: dash    |    Mobil: sol hareket / sağ kalkan"
+	help.text = "WASD: hareket  •  E / sağ tık: kalkan  •  Fare: yön ve mesafe  •  Boşluk: dash"
 	help.position = Vector2(290, 690)
 	help.add_theme_font_size_override("font_size", 15)
 	help.mouse_filter = Control.MOUSE_FILTER_IGNORE

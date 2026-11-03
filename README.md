@@ -14,7 +14,7 @@ Godot 4 / GDScript ile geliştirilen mobil odaklı 2D roguelite **oynanabilir pr
 
 ## Kontroller
 
-Masaüstü: **WASD** hareket, **sağ tık basılı** kalkan, **fare** yön, **boşluk** dash.
+Masaüstü: **WASD** hareket, **E veya sağ tık basılı** kalkan, **fare** yön ve mesafe, **boşluk** dash.
 
 Mobil: sol yarıda sürükleme hareket; sağ yarıda dokunma kalkan, sürükleme yön. Sol tarafta çift dokunma veya hızlı kaydırma dash yapar.
 
