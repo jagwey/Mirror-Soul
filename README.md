@@ -1,54 +1,45 @@
-# Mirror Soul — Ayna Kalkanı
+# Mirror Soul — Torimon Stüdyo
 
-**Saldırmak yerine yansıt.** Mirror Soul, düşman ateşini bir ayna kalkanıyla geri çevirme fikri üzerine kurulu, mobil odaklı bir 2D roguelite prototipidir. Oyuncu hareket eder, doğru anda kalkanını kaldırır ve düşmanların saldırılarını onlara karşı kullanır. Godot 4 ve GDScript ile geliştiriliyor.
+Başka bir dünyadan gelen bir gezgin, Shilda ile anlaşma yapar. Artık çıkaramadığı kalkanın içinde yaşayan ruh, onun tek silahıdır: düşmanların lazerlerini yakala, yönünü değiştir ve geri gönder.
 
-> **Proje durumu:** Erken prototip. Bu depo bir test odası ve temel mekanikleri içerir; tamamlanmış bir oyun veya mobil mağaza sürümü değildir.
+Godot 4 / GDScript ile geliştirilen mobil odaklı 2D roguelite **oynanabilir prototip**. Tamamlanmış oyun veya mağaza sürümü değildir.
 
-## Oynanış fikri
+## Oynanış
 
-Zindanda hayatta kalırken kalkanın yönünü ayarla, gelen mermileri ve lazerleri geri gönder. Kalkanı doğru zamanda açmak **perfect parry** sağlar; hareket, stamina yönetimi ve dash ile pozisyon almak da önemlidir. Hedeflenen roguelite döngüsünde zindan ödülleri kalkanın davranışını değiştirir.
-
-### Ayna geliştirmeleri
-
-- **Prizma Kesim:** Yansıyan saldırıyı 15 derece aralıklı 3 veya 5 yöne böler.
-- **Kavisli Cam:** Gelen saldırıların hasarını biriktirir; sağ parmak bırakıldığında geniş bir ışın olarak ateşler.
-- **Mıknatıslı Sır:** Yansımanın açısını en yakın düşmana doğru %35 düzeltir.
-- **Hayalet Ayna:** Dash başlangıcında üç oyun saniyesi boyunca ışınları yansıtan saydam bir kalkan bırakır.
-
-Geliştirmeler kod aracılığıyla uygulanabilir. Ödül seçim ekranı ve tam zindan ilerleyişi henüz uygulanmadı. Kombinasyonlar ve entegrasyon örneği için [geliştirme notlarına](UPGRADE_SISTEMI.md) bakın.
+- Dört farklı yöndeki nöbetçiler önce nişan çizgisi gösterir, sonra lazer ateşler. Başlangıçta saldırılar zaman olarak ayrılır; üst katlarda daha sıklaşır.
+- Kalkan ışını yansıtır; kalkanı kaçıran ışın sürekli can azaltır. Dash sırasında kısa koruma vardır.
+- Üç oda temizlendikten sonra üç geliştirmeden biri seçilir. Prizma, odaklama, otomatik nişan ve hayalet kalkan bulunur.
+- İlk iki odanın sonunda sağda açılan geçide yürüyerek ilerleyin; kat sonunda ödül seçip üst kata çıkın.
+- Shilda'nın konuşmaları aksiyonu durdurmadan alt panelde gösterilir.
 
 ## Kontroller
 
-- **Sol ekran:** Dokunup sürükleyerek hareket et. Hızlı kaydırma veya çift dokunuş dash yapar.
-- **Sağ ekran:** Dokunarak kalkanı aç; sürükleyerek yönelt. Parmağı bırakınca kalkan kapanır ve birikmiş odak hasarı varsa ateşlenir.
-- **Masaüstü:** Projede fareden dokunma emülasyonu açıktır. Tek fare işaretçisi aynı anda iki parmak kullanımını tam olarak temsil etmez; çoklu dokunma için gerçek cihazda test gerekir.
+Masaüstü: **WASD** hareket, **sağ tık basılı** kalkan, **fare** yön, **boşluk** dash.
 
-## Projeyi açma
+Mobil: sol yarıda sürükleme hareket; sağ yarıda dokunma kalkan, sürükleme yön. Sol tarafta çift dokunma veya hızlı kaydırma dash yapar.
 
-1. Godot Engine 4.x standart sürümünü kurun.
-2. Bu depoyu klonlayın veya indirin:
-   ```sh
-   git clone https://github.com/jagwey/Mirror-Soul.git
-   ```
-3. Godot Proje Yöneticisi'nde **Import / İçe Aktar** seçeneğini kullanın ve klasördeki `project.godot` dosyasını seçin.
-4. Projeyi açın ve **F6** veya **F5** ile test sahnesini başlatın. Ana sahne `scenes/TestDungeon.tscn` olarak ayarlıdır.
+## Açma ve test
 
-Mobil dışa aktarma için Godot'nun ilgili platforma ait export şablonlarını ve platform geliştirme araçlarını ayrıca kurmanız gerekir. Depoda hazır Android/iOS paketi bulunmaz.
+Depoyu klonlayıp `project.godot` dosyasını Godot'a aktarın. F5 ile ana sahneyi çalıştırın. Son kontroller Godot **4.7.2** ile yapıldı.
 
-## Proje yapısı
+```sh
+godot --headless --path . --script res://tests/control_and_hits.gd
+godot --headless --path . --script res://tests/dialogue_test.gd
+godot --headless --path . --script res://tests/floor_progression.gd
+godot --headless --path . --script res://tests/laser_combat.gd
+```
 
-- `scenes/TestDungeon.tscn` — test odası, oyuncu, düşmanlar ve mermi havuzu.
-- `scenes/Player.tscn` — oyuncu ve kalkan düğümleri.
-- `scripts/Player.gd` — dokunmatik hareket, dash, stamina ve kalkan girdisi.
-- `scripts/Shield.gd`, `scripts/MirrorUpgrade.gd` — kalkan ve geliştirilebilir davranışları.
-- `scripts/LaserBeam.gd` — ışın çizimi, yansıma ve hasar.
-- `scripts/Enemy.gd` — iskelet taret ve Overseer prototipleri.
-- `scripts/ProjectilePool.gd`, `scripts/PooledProjectile.gd` — yeniden kullanılan fiziksel mermiler.
+Android için dışa aktarma şablonları, Java ve Android SDK ayrıca kurulmalı. Android dışa aktarma profilinde **Include Filter / Dahil et filtresi** alanına `*.json` ekleyin; Shilda'nın metinleri uygulamaya dahil olsun. Yerel export ayarları, Android derleme çıktıları ve imzalama dosyaları depoya alınmaz.
 
-## Bilinen eksikler
+## Ekip belgeleri
 
-Oyuncu canı ve hasar alma, HUD bağlantısı, ödül seçim arayüzü, tam zindan döngüsü ve gerçek cihaz performans testleri henüz tamamlanmadı. Kapsam ve güncel test durumu için [PROGRESS.md](PROGRESS.md) dosyasına bakın.
+- [Piksel sanat görevleri](docs/PIKSEL_SANAT_GOREVLERI.md)
+- [Hikâye / JSON düzenleme rehberi](docs/HIKAYE_JSON_SABLONU.md)
+- [Diyalog dosyası](resources/dialogues.tr.json)
+- [Geliştirme entegrasyonu](UPGRADE_SISTEMI.md)
 
-## Lisans
+## Sınırlar
 
-Kaynak kodu ve bu depodaki proje dosyaları [MIT Lisansı](LICENSE) kapsamında sunulur. Üçüncü taraf içerik eklendiğinde kendi lisansları ayrıca belirtilmelidir.
+Odalar henüz aynı arena sınırlarını kullanır. Karakterler kod tabanlı özgün piksel desenleri ve basit hareketlerle çizilir. Kat dengesi gerçek oyuncu ve mobil cihaz testlerine ihtiyaç duyar. Sürekli kayıt, ses tasarımı, kapsamlı animasyonlar ve farklı geometrili odalar henüz yoktur.
+
+Kaynak kodu [MIT lisansı](LICENSE) altındadır.

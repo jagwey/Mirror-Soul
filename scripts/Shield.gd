@@ -3,6 +3,7 @@ extends Area2D
 
 signal parried
 signal blocked
+signal upgrade_picked(upgrade_id: String)
 const PURE_COLOR := Color(2.0, 2.0, 2.0)
 @export var perfect_window := 0.15
 @export var parry_multiplier := 3.0
@@ -18,24 +19,34 @@ var _raised_ms := 0
 var _touched_lasers: Array[Node] = []
 
 func _ready() -> void:
+	collision_mask = 3
 	area_entered.connect(_on_area_entered)
 
 func apply_upgrade(upgrade: MirrorUpgrade) -> void:
+	var upgrade_id := ""
 	match upgrade.kind:
 		MirrorUpgrade.Kind.PRISM:
 			prism_count = 5 if upgrade.prism_count == 5 else 3
+			upgrade_id = "prism"
 		MirrorUpgrade.Kind.FOCUS:
 			focus_enabled = true
+			upgrade_id = "focus"
 		MirrorUpgrade.Kind.AUTO_AIM:
 			auto_aim_enabled = true
+			upgrade_id = "auto_aim"
 		MirrorUpgrade.Kind.GHOST:
 			ghost_enabled = true
+			upgrade_id = "ghost"
+	if not upgrade_id.is_empty():
+		upgrade_picked.emit(upgrade_id)
 
 func raise() -> void:
 	active = true
 	_raised_ms = Time.get_ticks_msec()
 	_touched_lasers.clear()
 	visible = true
+	if not is_ghost:
+		modulate.a = 1.0
 	_collision.set_deferred("disabled", false)
 
 ## Yalnızca parmak bırakılması odaklanmış yükü ateşler.
@@ -44,7 +55,8 @@ func lower(fire_focus := false) -> void:
 		_fire_focus()
 	stored_damage = 0.0
 	active = false
-	visible = false
+	visible = true
+	modulate.a = 0.28
 	_collision.set_deferred("disabled", true)
 
 func is_perfect_window() -> bool:
@@ -66,6 +78,10 @@ func aimed_direction(direction: Vector2, origin_pos: Vector2) -> Vector2:
 	var desired := origin_pos.direction_to(nearest.global_position)
 	return direction.normalized().rotated(direction.angle_to(desired) * 0.35)
 
+## Reflect from the aimed shield plane, not a sloped polygon edge.
+func reflection_normal() -> Vector2:
+	return global_transform.x.normalized()
+
 func reflection_directions(direction: Vector2, origin_pos: Vector2) -> Array[Vector2]:
 	var result: Array[Vector2] = []
 	var center := aimed_direction(direction, origin_pos)
@@ -76,7 +92,7 @@ func reflection_directions(direction: Vector2, origin_pos: Vector2) -> Array[Vec
 func _on_area_entered(area: Area2D) -> void:
 	if not active or not area.is_in_group("EnemyProjectile") or not ("velocity" in area):
 		return
-	var normal := global_transform.x.normalized()
+	var normal := reflection_normal()
 	var v: Vector2 = area.velocity
 	if v.dot(normal) >= 0.0:
 		return

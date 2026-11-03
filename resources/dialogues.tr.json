@@ -1,0 +1,47 @@
+{
+  "dialogues": {
+    "on_game_start": [
+      "Ben Shilda. Başka dünyadan düştün, benimle anlaştın. Artık bu kalkanı çıkaramazsın. Önce şu tek nöbetçiyi savuştur."
+    ],
+    "on_shield_broken": [
+      "Kalkan kırıldı. Kendine güvenin de aynı malzemeden mi?",
+      "Güzel savunma. Geliştirici bu kısmı geçici sanıyordur."
+    ],
+    "on_perfect_parry_combo": [
+      "Aynayı bük. Hepsini tek noktaya odakla.",
+      "Üst üste savuşturdun. Birisi bunu fragmana koysun."
+    ],
+    "on_upgrade_picked": {
+      "prism": [
+        "Prizma mı? Bir hatanı artık beş farklı açıdan izleyebilirim."
+      ],
+      "focus": [
+        "İçine at, içine at... Patlayınca hata raporunu ben yazmam."
+      ],
+      "auto_aim": [
+        "Otomatik nişan. Parmakların sendikaya mı girdi?"
+      ],
+      "ghost": [
+        "Bir kopyan daha oldu. Test ekibi buna hazır mıydı?"
+      ]
+    }
+  },
+  "upgrades": {
+    "prism": {
+      "name": "Prizma Kesim",
+      "description": "Yansıyan saldırıyı birden fazla yöne böler."
+    },
+    "focus": {
+      "name": "Kavisli Cam",
+      "description": "Gelen hasarı biriktirir; kalkan bırakıldığında ışın olarak salar."
+    },
+    "auto_aim": {
+      "name": "Mıknatıslı Sır",
+      "description": "Yansımanın yönünü en yakın düşmana doğru hafifçe düzeltir."
+    },
+    "ghost": {
+      "name": "Hayalet Ayna",
+      "description": "Dash başlangıcında kısa süreli bir kalkan kopyası bırakır."
+    }
+  }
+}

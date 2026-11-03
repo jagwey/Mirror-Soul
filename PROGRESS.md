@@ -1,19 +1,7 @@
-# Geliştirme durumu
+# Güncel durum
 
-Mirror Soul erken aşamada bir Godot 4 mobil prototipidir.
-
-## Mevcut
-
-- Dokunmatik hareket, dash, stamina ve kalkan.
-- Lazer yansıması, dört Resource tabanlı kalkan geliştirmesi ve mermi havuzu.
-- Test odasında iskelet taret ve beş yönlü ateş eden Overseer.
-
-## Sırada
-
-- Godot 4.7.2 ile editör içe aktarma ve kısa başsız çalıştırma kontrolü yapıldı; gerçek mobil cihazlarda oynanış ve performans testleri bekliyor.
-- Oyuncu canı ve hasar alma; HUD stamina bağlantısı.
-- Zindan sonunda üç seçenekli ödül ekranı ve ilerleyiş döngüsü.
-- Mobil dışa aktarma ve cihazlara özel kontroller.
-
-Ayrıntılı entegrasyon ve mevcut davranışlar için [UPGRADE_SISTEMI.md](UPGRADE_SISTEMI.md) dosyasına bakın.
-
+- Shilda diyalogları, piksel karakterler ve zindan görselleri projeye bağlı.
+- Üç odalı kat akışı, geliştirme seçimi, can, ölüm ve tekrar deneme var.
+- Dört yönlü, uyarı çizgili düşman lazerleri aktif. Kalkanın kaçırdığı lazer sürekli hasar verir.
+- Kontrol/vuruş, diyalog, kat ilerleme ve sürekli lazer testleri Godot 4.7.2 ile geçti.
+- Gerçek cihaz testi, farklı oda geometrileri, ses, gelişmiş animasyonlar ve denge çalışması devam ediyor.

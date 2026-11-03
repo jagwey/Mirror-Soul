@@ -17,6 +17,7 @@ var _lines: Array[Line2D] = []
 var _burst_hits: Dictionary = {}
 
 func _ready() -> void:
+	add_to_group("CombatLaser")
 	_ray.top_level = true
 	_ray.enabled = false
 	_ray.collide_with_areas = true
@@ -54,25 +55,31 @@ func _physics_process(delta: float) -> void:
 			var pure: bool = hit.laser_contact(self, delta) or branch.pure
 			if hit.absorbs_laser() or count >= max_bounces:
 				continue
-			var bounce: Vector2 = direction.bounce(_ray.get_collision_normal())
+			var bounce: Vector2 = direction.bounce(hit.reflection_normal())
 			for next_dir in hit.reflection_directions(bounce, point):
 				branches.append({"origin": point + next_dir * 0.5, "dir": next_dir, "count": count + 1, "pure": pure, "exclude": hit})
 		elif hit is Node and hit.is_in_group("ReflectiveWall") and count < max_bounces:
 			var bounce: Vector2 = direction.bounce(_ray.get_collision_normal())
 			branches.append({"origin": point + bounce * 0.5, "dir": bounce, "count": count + 1, "pure": branch.pure, "exclude": hit})
-		elif hit is Node and hit.has_method("take_damage"):
-			if hit.is_in_group("Enemy") and count == 0 and not friendly:
+		elif hit is Node:
+			var enemy := DamageTarget.enemy_from(hit)
+			if enemy and count == 0 and not friendly:
+				continue
+			var target: Node = enemy if enemy else hit
+			if not target.has_method("take_damage"):
 				continue
 			var amount: float = damage_per_sec * (3.0 if branch.pure and not friendly else 1.0) * (1 + count) * delta
 			if burst_damage > 0.0:
-				if _burst_hits.has(hit.get_instance_id()):
+				if _burst_hits.has(target.get_instance_id()):
 					continue
-				_burst_hits[hit.get_instance_id()] = true
+				_burst_hits[target.get_instance_id()] = true
 				amount = burst_damage
-			if hit.is_in_group("Enemy"):
-				hit.take_damage(amount, count + 1 if count > 0 else 0)
+			if enemy:
+				DamageTarget.apply_enemy_damage(enemy, amount, count + 1 if count > 0 else 0)
+			elif target.has_method("take_laser_damage"):
+				target.take_laser_damage(amount)
 			else:
-				hit.take_damage(amount)
+				target.take_damage(amount)
 	if not touched:
 		purified = false
 	if max_seen != bounces:

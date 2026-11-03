@@ -1,4 +1,7 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/DialogueManager.gd" id="2_dialogue"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_bg"]
 bg_color = Color(0.15, 0.15, 0.15, 0.9)
@@ -6,7 +9,7 @@ border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(1, 1, 1, 1)
+border_color = Color(0.7, 0.74, 0.64, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
 bg_color = Color(0.9, 0.2, 0.25, 1)
@@ -30,9 +33,15 @@ border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
-border_color = Color(1, 1, 1, 1)
+border_color = Color(0.7, 0.74, 0.64, 1)
 
 [node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="DialogueManager" type="Node" parent="."]
+script = ExtResource("2_dialogue")
+panel_path = NodePath("../DialogueBox")
+text_path = NodePath("../DialogueBox/DialogueText")
 
 [node name="TouchZones" type="Control" parent="."]
 layout_mode = 3
@@ -60,6 +69,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="CenterDividerGuide" type="Line2D" parent="TouchZones"]
+visible = false
 points = PackedVector2Array(640, 0, 640, 720)
 width = 1.0
 default_color = Color(1, 1, 1, 0.08)
@@ -73,6 +83,7 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 
 [node name="HPBar" type="ProgressBar" parent="TopStatusContainer"]
+visible = false
 custom_minimum_size = Vector2(280, 24)
 layout_mode = 2
 mouse_filter = 2
@@ -103,13 +114,15 @@ value = 100.0
 show_percentage = false
 
 [node name="DialogueBox" type="Panel" parent="."]
+visible = false
+mouse_filter = 2
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -420.0
-offset_top = -180.0
+offset_top = -148.0
 offset_right = 420.0
 offset_bottom = -24.0
 grow_horizontal = 2
@@ -117,18 +130,19 @@ grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_dialogue")
 
 [node name="DialogueText" type="RichTextLabel" parent="DialogueBox"]
+mouse_filter = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 20.0
+offset_left = 92.0
+offset_top = 38.0
 offset_right = -24.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/default_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/normal_font_size = 22
-bbcode_enabled = true
-text = "* (Aynadaki yansıman sana sessizce bakıyor...)"
+bbcode_enabled = false
+text = ""
 scroll_active = false

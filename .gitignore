@@ -9,3 +9,9 @@ data_*/
 *.log
 .DS_Store
 Thumbs.db
+# Local Android build/template output and signing files
+android/
+*.apk
+*.aab
+*.keystore
+*.jks
