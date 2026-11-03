@@ -15,12 +15,15 @@ var bounces := 0
 var _ray := RayCast2D.new()
 var _lines: Array[Line2D] = []
 var _burst_hits: Dictionary = {}
+var _last_shields: Array[Node] = []
 
 func _ready() -> void:
 	add_to_group("CombatLaser")
 	_ray.top_level = true
 	_ray.enabled = false
 	_ray.collide_with_areas = true
+	_ray.collide_with_bodies = true
+	_ray.collision_mask = 1
 	add_child(_ray)
 
 func _physics_process(delta: float) -> void:
@@ -30,6 +33,7 @@ func _physics_process(delta: float) -> void:
 	var line_index := 0
 	var max_seen := 0
 	var touched := false
+	var current_shields: Array[Node] = []
 	while not branches.is_empty() and line_index < 32:
 		var branch: Dictionary = branches.pop_back()
 		var origin: Vector2 = branch.origin
@@ -52,6 +56,8 @@ func _physics_process(delta: float) -> void:
 		max_seen = maxi(max_seen, count)
 		if hit is Node and hit.is_in_group("Shield") and hit.active:
 			touched = true
+			if hit not in current_shields:
+				current_shields.append(hit)
 			var pure: bool = hit.laser_contact(self, delta) or branch.pure
 			if hit.absorbs_laser() or count >= max_bounces:
 				continue
@@ -68,7 +74,7 @@ func _physics_process(delta: float) -> void:
 			var target: Node = enemy if enemy else hit
 			if not target.has_method("take_damage"):
 				continue
-			var amount: float = damage_per_sec * (3.0 if branch.pure and not friendly else 1.0) * (1 + count) * delta
+			var amount: float = damage_per_sec * (3.0 if branch.pure and not friendly else 1.0) * delta
 			if burst_damage > 0.0:
 				if _burst_hits.has(target.get_instance_id()):
 					continue
@@ -80,6 +86,10 @@ func _physics_process(delta: float) -> void:
 				target.take_laser_damage(amount)
 			else:
 				target.take_damage(amount)
+	for shield in _last_shields:
+		if is_instance_valid(shield) and shield not in current_shields and shield.has_method("release_laser"):
+			shield.release_laser(self)
+	_last_shields = current_shields
 	if not touched:
 		purified = false
 	if max_seen != bounces:
@@ -98,3 +108,8 @@ func _get_line(index: int) -> Line2D:
 		add_child(line)
 		_lines.append(line)
 	return _lines[index]
+
+func _exit_tree() -> void:
+	for shield in _last_shields:
+		if is_instance_valid(shield) and shield.has_method("release_laser"):
+			shield.release_laser(self)

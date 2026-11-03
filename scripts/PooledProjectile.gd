@@ -45,10 +45,41 @@ func deactivate() -> void:
 func _physics_process(delta: float) -> void:
 	if not in_use:
 		return
-	global_position += velocity * delta
+	var next_position := global_position + velocity * delta
+	# A swept ray catches small hurtboxes crossed between physics frames.
+	if reflected and velocity.length_squared() > 0.0:
+		var query := PhysicsRayQueryParameters2D.create(global_position, next_position, 1)
+		query.collide_with_areas = true
+		var exclusions: Array[RID] = []
+		for node in get_tree().get_nodes_in_group("Player") + get_tree().get_nodes_in_group("Shield"):
+			if node is CollisionObject2D:
+				exclusions.append(node.get_rid())
+		query.exclude = exclusions
+		var hit := get_world_2d().direct_space_state.intersect_ray(query)
+		if not hit.is_empty():
+			var collider: Object = hit.collider
+			var enemy := DamageTarget.enemy_from(collider) if collider is Node else null
+			if enemy:
+				global_position = hit.position
+				DamageTarget.apply_enemy_damage(enemy, damage)
+				pool.recycle(self)
+				return
+			if collider is Node and collider.is_in_group("ReflectiveWall"):
+				pool.recycle(self)
+				return
+	global_position = next_position
 	lifetime -= delta
 	if lifetime <= 0.0:
 		pool.recycle(self)
+		return
+	# Fast reflected shots can skip enter signals; overlap scan is the fallback.
+	if reflected and monitoring:
+		for other in get_overlapping_bodies() + get_overlapping_areas():
+			var enemy := DamageTarget.enemy_from(other)
+			if enemy:
+				DamageTarget.apply_enemy_damage(enemy, damage)
+				pool.recycle(self)
+				return
 
 func _on_body_entered(body: Node2D) -> void:
 	if not in_use:

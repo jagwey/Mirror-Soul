@@ -34,6 +34,9 @@ signal perfect_parry_combo(count: int)
 @export var stun_time := 2.0
 @export_group("Bullet Time")
 @export var block_time_scale := 0.4
+@export_group("Telekinesis")
+@export var min_offset := 30.0
+@export var max_offset := 180.0
 
 @onready var shield_pivot: Node2D = $ShieldPivot
 @onready var shield: Shield = $ShieldPivot/ShieldArea
@@ -55,6 +58,11 @@ var _dash_left := 0.0
 var _shield_target_angle := 0.0
 var _last_parry_ms := -100000
 var _parry_combo := 0
+var drag_vector := Vector2.ZERO
+var telekinetic_offset := 30.0
+var _target_offset := 30.0
+var _tether: Line2D
+var _hitstop := false
 
 
 func _ready() -> void:
@@ -62,6 +70,11 @@ func _ready() -> void:
 	shield.blocked.connect(_on_blocked)
 	shield.lower()
 	stamina_changed.emit(stamina, max_stamina)
+	_tether = Line2D.new()
+	_tether.width = 3.0
+	_tether.default_color = Color(1.5, 1.8, 2.5, 0.8)
+	_tether.z_index = -1
+	add_child(_tether)
 
 
 func _input(event: InputEvent) -> void:
@@ -71,13 +84,16 @@ func _input(event: InputEvent) -> void:
 		_try_dash()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
 		if event.pressed:
-			_shield_target_angle = (get_global_mouse_position() - global_position).angle()
+			drag_vector = get_global_mouse_position() - global_position
+			_update_shield_target(drag_vector)
 			shield_pivot.rotation = _shield_target_angle
 			_raise_shield()
 		else:
+			_target_offset = min_offset
 			_lower_shield(true)
 	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
-		_shield_target_angle = (get_global_mouse_position() - global_position).angle()
+		drag_vector = get_global_mouse_position() - global_position
+		_update_shield_target(drag_vector)
 		shield_pivot.rotation = lerp_angle(shield_pivot.rotation, _shield_target_angle, aim_immediate_weight)
 	elif event is InputEventScreenTouch:
 		_handle_touch(event)
@@ -106,6 +122,7 @@ func _handle_touch(e: InputEventScreenTouch) -> void:
 			_move_input = Vector2.ZERO
 		elif e.index == _shield_finger:
 			_shield_finger = -1
+			_target_offset = min_offset
 			_lower_shield(true)
 
 
@@ -117,8 +134,18 @@ func _handle_drag(e: InputEventScreenDrag) -> void:
 	elif e.index == _shield_finger:
 		var aim := e.position - _shield_origin
 		if aim.length_squared() >= aim_deadzone * aim_deadzone:
-			_shield_target_angle = aim.angle()
+			drag_vector = aim
+			_update_shield_target(aim)
+			if e.velocity.length() > swipe_speed:
+				_target_offset = max_offset
 			shield_pivot.rotation = lerp_angle(shield_pivot.rotation, _shield_target_angle, aim_immediate_weight)
+
+
+func _update_shield_target(aim: Vector2) -> void:
+	if aim.length_squared() < aim_deadzone * aim_deadzone:
+		return
+	_shield_target_angle = aim.angle()
+	_target_offset = clampf(min_offset + aim.length() * 0.75, min_offset, max_offset)
 
 
 func _physics_process(delta: float) -> void:
@@ -128,9 +155,12 @@ func _physics_process(delta: float) -> void:
 		_move_input = Vector2(float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A)), float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W))).normalized()
 	# Stamina/bullet time run on real time so 0.4x does not slow the drain.
 	var real_delta := delta / maxf(Engine.time_scale, 0.001)
-	if _shield_finger != -1 and shield.active:
+	if shield.active:
 		var weight := 1.0 - exp(-aim_smoothing_speed * real_delta)
 		shield_pivot.rotation = lerp_angle(shield_pivot.rotation, _shield_target_angle, weight)
+	telekinetic_offset = lerpf(telekinetic_offset, _target_offset, 1.0 - exp(-12.0 * real_delta))
+	shield.position.x = telekinetic_offset
+	_tether.points = PackedVector2Array([Vector2.ZERO, to_local(shield.global_position)])
 	if _move_input.length_squared() > 0.01:
 		facing = _move_input.normalized()
 
@@ -144,7 +174,7 @@ func _physics_process(delta: float) -> void:
 			velocity = Vector2.ZERO
 		State.BLOCKING:
 			velocity = _move_input * move_speed
-			if not shield.is_perfect_window():
+			if not shield.is_perfect_window() and not _hitstop:
 				Engine.time_scale = block_time_scale
 			_change_stamina(-block_drain * real_delta)
 		State.NORMAL:
@@ -213,14 +243,19 @@ func _on_parried() -> void:
 	_last_parry_ms = now
 	if _parry_combo == maxi(2, parry_combo_threshold):
 		perfect_parry_combo.emit(_parry_combo)
-	Engine.time_scale = 1.0
 	_change_stamina(parry_gain)
 	screen_shake()
+	if _hitstop:
+		return
+	_hitstop = true
+	Engine.time_scale = 0.0
+	await get_tree().create_timer(0.05, true, false, true).timeout
+	Engine.time_scale = 1.0
+	_hitstop = false
 
 
 func _on_blocked() -> void:
 	_change_stamina(-block_hit_cost)
-
 
 ## No Camera2D in the scene, so shake the canvas transform directly.
 func screen_shake(strength := 8.0, duration := 0.15) -> void:
@@ -240,6 +275,7 @@ func take_damage(amount: float) -> void:
 		return
 	health = maxf(0.0, health - amount)
 	_invulnerable_until = Time.get_ticks_msec() + 700
+	shield.reset_combo()
 	health_changed.emit(health)
 	if health <= 0.0:
 		dead = true
@@ -248,9 +284,10 @@ func take_damage(amount: float) -> void:
 
 ## Continuous damage must not be reduced to one tiny frame by projectile invulnerability.
 func take_laser_damage(amount: float) -> void:
-	if dead or state == State.DASHING:
+	if dead or state == State.DASHING or amount <= 0.0:
 		return
 	health = maxf(0.0, health - amount)
+	shield.reset_combo()
 	health_changed.emit(health)
 	if health <= 0.0:
 		dead = true

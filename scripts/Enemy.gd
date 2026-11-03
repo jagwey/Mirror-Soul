@@ -20,6 +20,7 @@ var _player: Node2D
 var _pool: ProjectilePool
 var _next_damage_label_ms := 0
 var _dying := false
+var _knockback := Vector2.ZERO
 
 func _ready() -> void:
 	add_to_group("Enemy")
@@ -43,7 +44,16 @@ func _ready() -> void:
 	art.pixel_size = 2.5 if enemy_type == 0 else 4.0
 	add_child(art)
 
+func knockback(v: Vector2) -> void:
+	_knockback = v
+
 func _physics_process(delta: float) -> void:
+	if _dying:
+		return
+	if _knockback != Vector2.ZERO:
+		velocity = _knockback
+		move_and_slide()
+		_knockback = _knockback.move_toward(Vector2.ZERO, 1500.0 * delta)
 	if not is_instance_valid(_player) or _player.dead:
 		return
 	_timer -= delta
@@ -91,7 +101,12 @@ func take_damage(amount: float, combo_count := 0) -> void:
 		_dying = true
 		_show_feedback("✦", Color(1.0, 0.3, 0.2))
 		died.emit()
-		queue_free()
+		modulate = Color(3, 3, 3)
+		_warning.hide()
+		for child in get_children():
+			if child is CollisionShape2D:
+				child.set_deferred("disabled", true)
+		get_tree().create_timer(0.06, true, false, true).timeout.connect(queue_free)
 
 func _show_feedback(message: String, color: Color) -> void:
 	var scene := get_tree().current_scene

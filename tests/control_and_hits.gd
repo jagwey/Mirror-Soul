@@ -33,6 +33,10 @@ func _run() -> void:
 	player._input(touch)
 	check(not player.shield.active and player.state == player.State.NORMAL, "Shield did not close on release")
 	player.shield_pivot.rotation = 0.0
+	player._shield_target_angle = 0.0
+	player._target_offset = player.min_offset
+	player.telekinetic_offset = player.min_offset
+	player.shield.position.x = player.min_offset
 	player.shield.raise()
 	var enemy := Enemy.new()
 	enemy.max_health = 1.0
